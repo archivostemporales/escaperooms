@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Rooms</title>
+    <style>
+        /* --- VARIABLES Y CONFIGURACIÓN GENERAL --- */
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: #181c24;
+            --poster-bg: #0b0d10; /* Fondo más oscuro para el contenedor de la carátula */
+            --text-color: #ffffff;
+            --text-muted: #9ca3af;
+            --accent-color: #e50914; /* Rojo estilo Netflix/Cine */
+            --accent-hover: #ff1f29;
+            --btn-secondary: #2a313e;
+            --btn-secondary-hover: #3b4556;
+            --overlay-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-color);
+            padding: 2rem 1rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #ffffff, var(--text-muted));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* --- LISTADO DE ESCAPE ROOMS (ESTILO PELÍCULA) --- */
+        .escape-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+        }
+
+        .escape-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .escape-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Contenedor de la Carátula Vertical */
+        .escape-poster {
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            height: 100%;
+            min-height: 340px;
+            background-color: var(--poster-bg); /* Evita huecos extraños si la proporción varía */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CORRECCIÓN: Ahora la carátula se muestra COMPLETA sin ningún corte */
+        .escape-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* Ajusta la imagen completa respetando sus proporciones */
+            transition: transform 0.5s ease;
+            padding: 4px; /* Un pequeño margen elegante de cortesía */
+        }
+
+        .escape-poster:hover img {
+            transform: scale(1.03);
+        }
+
+        /* Contenido de la Tarjeta */
+        .escape-content {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .escape-info h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .escape-description {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            white-space: pre-line;
+        }
+
+        /* Zona Inferior: Colaboradores y Botones */
+        .escape-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
+        }
+
+        .collaborators {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .collaborators span {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+        }
+
+        .collaborators-img {
+            width: 120px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: opacity 0.2s;
+        }
+
+        .collaborators-img:hover {
+            opacity: 0.8;
+        }
+
+        /* Contenedor de Botones de Vídeo */
+        .video-buttons {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Estilo base de los botones */
+        .btn-video {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .btn-video svg {
+            fill: currentColor;
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Botón Teaser (Secundario) */
+        .btn-teaser {
+            background-color: var(--btn-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-teaser:hover {
+            background-color: var(--btn-secondary-hover);
+            transform: scale(1.03);
+        }
+
+        /* Botón Movie (Principal) */
+        .btn-movie {
+            background-color: var(--accent-color);
+        }
+
+        .btn-movie:hover {
+            background-color: var(--accent-hover);
+            transform: scale(1.03);
+        }
+
+        /* --- POPUP / LIGHTBOX --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+
+        .popup-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .popup-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 85vh;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .popup-overlay.active .popup-content {
+            transform: scale(1);
+        }
+
+        .popup-img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            display: block;
+        }
+
+        .popup-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .escape-card {
+                grid-template-columns: 1fr;
+            }
+            .escape-poster {
+                height: 380px;
+                min-height: auto;
+            }
+            .escape-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+            .video-buttons {
+                width: 100%;
+            }
+            .btn-video {
+                flex: 1;
+                justify-content: center;
+                min-width: 130px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <header>
+            <h1>Escape Rooms</h1>
+            <p>Colección de aventuras y desafíos creados por José María Álvarez para el CEIP S. y J. Álvarez Quintero (Utrera)</p>
+        </header>
+
+        <main class="escape-list">
+
+            <!-- ESCAPE ROOM 1 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula1.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2>QuintePotter</h2>
+                        <p class="escape-description">
+                            Los alumnos se enfrentan a un desafío sin precedentes. Deberán resolver acertijos matemáticos, descifrar códigos ocultos, etc. para poder entrar en la Academia de Hogwarts. ¡El tiempo corre!
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores1.jpg" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+
+                            <a href="https://www.youtube.com/watch?v=F_pjo6Yny1E" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ESCAPE ROOM 2 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula2.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2>Quintero Wars</h2>
+                        <p class="escape-description">
+                            "Quintero Wars". Un grupo de valientes rebeldes se ha infiltrado en un Destructor Estelar con la misión de sabotearlo y robar los planos de la "Estrella de la Muerte". Realizado el 15 y 16 de junio de 2023.
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores2.jpg" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=eLRFdv7hsDg" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=YbGLYEWfcBs" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+<!-- ******************************************************************************************************************************************* -->
+            <!-- ESCAPE ROOM 3 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula3.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2>Quintero Town Horror</h2>
+                        <p class="escape-description">
+                            "Quintero Town Horror". Han enviado a un grupo de investigadores a Quintero Town porque han estado ocurriendo extraños fenómenos. Apariciones espectrales, niños poseídos, muñecas endemoniadas, ... El bibliotecario del pueblo ha denunciado que alguien ha robado el Necronomicón, el libro de los muertos. Realizado el 30 y 31 de octubre de 2023.
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores3.png" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=HIECQStAdQE" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=AS63Qg85Zio&pp=0gcJCQQLAYcqIYzv" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+<!-- ******************************************************************************************************************************************* -->
+            <!-- ESCAPE ROOM 4 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula4.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2>La Maldición de Quinterot</h2>
+                        <p class="escape-description">
+                            "La Maldición de Quinterot". Unos exploradores se adentran en la pirámide del faraón Quinterot para buscar a un arqueólogo desaparecido. Pero no todo es lo que parece... Realizado el 22 y 23 de mayo de 2024.
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores4.png" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=5wabmo59fzQ" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=1lLNbfaawPY" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+<!-- ******************************************************************************************************************************************* -->
+            <!-- ESCAPE ROOM 5 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula5.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2> El Laboratorio del Doctor Quinterostein</h2>
+                        <p class="escape-description">
+                            "El Laboratorio del Doctor Quinterostein". En la tranquila localidad de Utrera, un experimento fallido en un laboratorio ha liberado un virus mortal que convierte a sus habitantes en zombis. Realizado el 29 y 30 de octubre de 2024.
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores5.png" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=3GCdnTwPIEE" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=cFYb6zdRMNU" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+<!-- ******************************************************************************************************************************************* -->
+            <!-- ESCAPE ROOM 6 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula6.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2> Don Quintero de la Plancha</h2>
+                        <p class="escape-description">
+                            "Don Quintero de la Plancha". Unos investigadores van a viajar al pasado, con una sola misión: averiguar qué pasó con la muerte del célebre Don Álvaro Quintero de la Plancha. Realizado el 3 y 4 de junio de 2025.
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores6.png" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=iGNXGlcZFKI" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=oNzpQ6har0Q" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+<!-- ******************************************************************************************************************************************* -->
+            <!-- ESCAPE ROOM 7 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula7.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2>El Regreso de Drácula</h2>
+                        <p class="escape-description">
+                            "El Regreso de Drácula". Vuestro amigo Jonathan Harker os ha pedido ayuda para rescatar a su esposa Mina del castillo del conde Drácula. Realizado el 30 y 31 de octubre de 2025.
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores7.png" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=A5EgWs6u03Y" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="https://www.youtube.com/watch?v=KRE-oRWhiDk" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+<!-- ******************************************************************************************************************************************* -->
+            <!-- ESCAPE ROOM 8 -->
+            <article class="escape-card">
+                <div class="escape-poster">
+                    <img src="images/caratula8.jpg" alt="Carátula" class="zoomable">
+                </div>
+                <div class="escape-content">
+                    <div class="escape-info">
+                        <h2>El Tesoro de Quintero el Tuerto</h2>
+                        <p class="escape-description">
+                            "El Tesoro de Quintero el Tuerto". Habéis encontrado una carta y la mitad de un mapa del tesoro, pertenecientes a vuestro antepasado el pirata Quintero "el Tuerto". 
+                        </p>
+                    </div>
+                    <div class="escape-footer">
+                        <div class="collaborators">
+                            <span>Colaboradores</span>
+                            <img src="images/colaboradores8.jpg" alt="Colaboradores" class="collaborators-img zoomable">
+                        </div>
+                        
+                        <div class="video-buttons">
+                            <a href="https://www.youtube.com/watch?v=5Ssg5HZw5ls" target="_blank" rel="noopener noreferrer" class="btn-video btn-teaser">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Teaser
+                            </a>
+                            <a href="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" target="_blank" rel="noopener noreferrer" class="btn-video btn-movie">
+                                <svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                Ver Película
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+<!-- ******************************************************************************************************************************************* -->
+
+        </main>
+    </div>
+
+    <!-- ESTRUCTURA DEL POPUP -->
+    <div class="popup-overlay" id="popupOverlay">
+        <div class="popup-content">
+            <button class="popup-close" id="popupClose">&times;</button>
+            <img src="" alt="Imagen ampliada" class="popup-img" id="popupImg">
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        const overlay = document.getElementById('popupOverlay');
+        const popupImg = document.getElementById('popupImg');
+        const closeBtn = document.getElementById('popupClose');
+        const zoomableImages = document.querySelectorAll('.zoomable');
+
+        zoomableImages.forEach(img => {
+            img.addEventListener('click', () => {
+                popupImg.src = img.src;
+                popupImg.alt = img.alt;
+                overlay.classList.add('active');
+            });
+        });
+
+        closeBtn.addEventListener('click', () => {
+            overlay.classList.remove('active');
+        });
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                overlay.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
